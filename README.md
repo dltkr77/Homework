@@ -455,3 +455,22 @@ hadoop@master:/home/hadoop/tools/hadoop/bin$ ./hadoop dfs -cat output/part-r-000
 "Contributor"   1
 ( 생략 )
 ```
+
+### 원격저장소에서 Clone 만들기
+이번 과제를 위한 디렉토리를 만들고, git에서 해당 자료들을 가져옵니다.
+```
+cd
+mkdir test
+cd test
+git clone https://github.com/dltkr77/Homework ./
+
+========== logs ==========
+hadoop@master:/home/hadoop/test$ git clone https://github.com/dltkr77/Homework ./
+Cloning into '.'...
+remote: Counting objects: 59, done.
+remote: Compressing objects: 100% (38/38), done.
+remote: Total 59 (delta 12), reused 33 (delta 4)
+Unpacking objects: 100% (59/59), done.
+Checking connectivity... done.
+```
+
