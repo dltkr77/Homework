@@ -152,16 +152,66 @@ ystem/JTClient.java
 ### 환경을 알아두고 넘어갑시다!
 VM들의 SSH Port와 각 계정 설정은 아래와 같습니다.
 ```
+========== VM : SSH Port ==========
 master : 2222 Port
 slave1 : 2200 Port
 slave2 : 2201 Port
 ※ 주의사항 : 해당 포트들이 사용되고 있는지 꼭! 확인하세요.
 master -> slave1 -> slave2 순서로 포트가 할당이 되며 순서는 아래와 같습니다.
 2222 -> 2200 -> 2201 -> 2202 -> 2203 -> 2204...
-중간에 사용이 되고 있는 port가 있을 경우, 다음 번호를 사용하게 됩니다. (즉 2222포트가 사용중이라면 master의 포트는 2200이 됩니다.)
+중간에 사용이 되고 있는 port가 있을 경우, 다음 번호를 사용하게 됩니다.
+(즉 2222포트가 사용중이라면 master의 포트는 2200이 됩니다.)
 
 ========== 아이디 : 패스워드 ==========
 root : vagant
 vagrant : vagrant
 hadoop : hadoop
+```
+
+### SSH public key 공유 (master에서만 수행)
+우선 master VM으로 위의 port를 참고하여 접속합니다. (hadoop/hadoop)
+```
+아래 명령어를 입력하고, 패스워드를 설정하는 부분에서는 엔터만 칩니다.
+ssh-keygen -t rsa
+cat ~/.ssh/id_rsa.pub > authorized_keys
+ssh-copy-id -i ~/.ssh/id_rsa.pub hadoop@slave1
+ssh-copy-id -i ~/.ssh/id_rsa.pub hadoop@slave2
+
+========== logs ==========
+hadoop@master:/home/hadoop$ ssh-keygen -t rsa
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/hadoop//.ssh/id_rsa):
+Created directory '/home/hadoop//.ssh'.
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /home/hadoop//.ssh/id_rsa.
+Your public key has been saved in /home/hadoop//.ssh/id_rsa.pub.
+The key fingerprint is:
+1f:2d:2d:ac:97:3b:b9:da:e9:b9:60:f9:a8:90:5f:1b hadoop@master
+The key's randomart image is:
++--[ RSA 2048]----+
+|                 |
+|                 |
+|                 |
+|         . o     |
+|        S = o    |
+|     .   + =     |
+|    o   E +.     |
+|     o o Oo+     |
+|      o.+oX+     |
++-----------------+
+
+hadoop@master:/home/hadoop$ cat ~/.ssh/id_rsa.pub > authorized_keys
+hadoop@master:/home/hadoop$ ssh-copy-id -i ~/.ssh/id_rsa.pub hadoop@slave1
+The authenticity of host 'slave1 (192.168.200.10)' can't be established.
+ECDSA key fingerprint is 2b:fb:1c:b0:7a:d5:ea:11:b9:e6:f8:7e:60:9b:b9:cc.
+Are you sure you want to continue connecting (yes/no)? yes
+/usr/bin/ssh-copy-id: INFO: attempting to log in with the new key(s), to filter out any that are already installed
+/usr/bin/ssh-copy-id: INFO: 1 key(s) remain to be installed -- if you are prompted now it is to install the new keys
+hadoop@slave1's password:
+
+Number of key(s) added: 1
+
+Now try logging into the machine, with:   "ssh 'hadoop@slave1'"
+and check to make sure that only the key(s) you wanted were added.
 ```
