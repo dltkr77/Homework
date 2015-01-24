@@ -56,7 +56,7 @@ end
 
 ### Shell Script 작성
 VM에서 사용될 환경을 만들어 주기 위한 Shell Script를 아래와 같이 작성합니다.
-해당 파일명은 'setup.sh'로 만들어서, project 디렉토리에 넣어줍니다.
+해당 파일명은 'setup.sh'로 만들어서 project 디렉토리에 넣어줍니다.
 ```
 #!/bin/bash
 
@@ -104,4 +104,18 @@ echo "ff02::3 ip6-allhosts" >> /etc/hosts
 echo "192.168.200.2 mmaster" >> /etc/hosts
 echo "192.168.200.10 sslave1" >> /etc/hosts
 echo "192.168.200.11 sslave2" >> /etc/hosts
+```
+
+### vagrant up!
+```
+cd \project
+vagrant up
+
+---- Logs ----
+C:\Project>vagrant up
+Bringing machine 'master' up with 'virtualbox' provider...
+Bringing machine 'slave1' up with 'virtualbox' provider...
+Bringing machine 'slave2' up with 'virtualbox' provider...
+==> master: Importing base box 'ubuntu/trusty64'...
+( 중략 )
 ```
