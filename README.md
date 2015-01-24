@@ -31,6 +31,8 @@ Vagrant.configure(2) do |config|
     master.vm.box = "ubuntu/trusty64"
     master.vm.hostname = "master"
     master.vm.network "private_network", ip: "192.168.200.2"
+    master.vm.provision "file", source: "./ssh_setting.sh",
+      destination: "/home/vagrant/ssh_setting.sh"
     master.vm.provision "shell", path: "./setup.sh"
   end
 
@@ -44,6 +46,8 @@ Vagrant.configure(2) do |config|
     slave1.vm.box = "ubuntu/trusty64"
     slave1.vm.hostname = "slave1"
     slave1.vm.network "private_network", ip: "192.168.200.10"
+    slave1.vm.provision "file", source: "./ssh_setting.sh",
+      destination: "/home/vagrant/ssh_setting.sh"
     slave1.vm.provision "shell", path: "./setup.sh"
   end
 
@@ -56,6 +60,8 @@ Vagrant.configure(2) do |config|
     slave2.vm.box = "ubuntu/trusty64"
     slave2.vm.hostname = "slave2"
     slave2.vm.network "private_network", ip: "192.168.200.11"
+    slave2.vm.provision "file", source: "./ssh_setting.sh",
+      destination: "/home/vagrant/ssh_setting.sh"
     slave2.vm.provision "shell", path: "./setup.sh"
   end
 end
@@ -79,25 +85,25 @@ apt-get install -y openjdk-7-jdk
 # Install expect
 apt-get install -y expect
 
+# Install git
+apt-get install -y git
+
 # Add group and user
 addgroup hadoop
 useradd -g hadoop -d /home/hadoop/ -s /bin/bash -m hadoop
-expect << EOF
-    spawn passwd hadoop
-    expect "Enter new UNIX password:"
-        send "hadoop"
-    expect "Retype new UNIX password:"
-        send "hadoop"
-    expect eof
-EOF
+echo -e "hadoop\nhadoop" | (passwd hadoop)
 
-# hadoop user's password change
+# Make directory for hdfs
 host=`hostname`
 if [ $host == "master" ]; then
 	mkdir -p /home/hadoop/hdfs/name
 else
 	mkdir -p /home/hadoop/hdfs/data
 fi
+
+# Modify ssh_setting.sh(encoding problem)
+sed -i 's/\r//' /home/vagrant/ssh_setting.sh
+cp /home/vagrant/ssh_setting.sh /home/hadoop/
 
 # Download hadoop
 mkdir $tools
@@ -106,13 +112,82 @@ wget http://ftp.daum.net/apache//hadoop/common/hadoop-1.2.1/hadoop-1.2.1.tar.gz
 tar xvf hadoop-1.2.1.tar.gz
 ln -s $tools/hadoop-1.2.1 $tools/hadoop
 ln -s /usr/lib/jvm/java-1.7.0-openjdk-amd64 $tools/jdk
-chown -R hadoop:hadoop /home/hadoop
-chmod 755 -R /home/hadoop
+
+# Download Maven
+cd $tools
+wget http://mirror.apache-kr.org/maven/maven-3/3.2.5/binaries/apache-maven-3.2.5-bin.tar.gz
+tar xvf apache-maven-3.2.5-bin.tar.gz
+ln -s $tools/apache-maven-3.2.5 $tools/maven
+
+#== Hadoop Setting ==#
+# hadoop-env.sh
+echo "export JAVA_HOME=/home/hadoop/tools/jdk" >> $HH/conf/hadoop-env.sh
+echo "export HADOOP_HOME_WARN_SUPRESS=\"TRUE\"" >> $HH/conf/hadoop-env.sh
+echo "export HADOOP_OPTS=-server" >> $HH/conf/hadoop-env.sh
+
+# core-site.xml
+echo "<?xml version=\"1.0\"?>" > $HH/conf/core-site.xml
+echo "<?xml-stylesheet type=\"text/xsl\" href=\"configuration.xsl\"?>" >> $HH/conf/core-site.xml
+echo "" >> $HH/conf/core-site.xml
+echo "<!-- Put site-specific property overrides in this file. -->" >> $HH/conf/core-site.xml
+echo "" >> $HH/conf/core-site.xml
+echo "<configuration>" >> $HH/conf/core-site.xml
+echo "  <property>" >> $HH/conf/core-site.xml
+echo "    <name>fs.default.name</name>" >> $HH/conf/core-site.xml
+echo "    <value>hdfs://master:9000</value>" >> $HH/conf/core-site.xml
+echo "  </property>" >> $HH/conf/core-site.xml
+echo "</configuration>" >> $HH/conf/core-site.xml
+
+# hdfs-site.xml
+echo "<?xml version=\"1.0\"?>" > $HH/conf/hdfs-site.xml
+echo "<?xml-stylesheet type=\"text/xsl\" href=\"configuration.xsl\"?>" >> $HH/conf/hdfs-site.xml
+echo "" >> $HH/conf/hdfs-site.xml
+echo "<!-- Put site-specific property overrides in this file. -->" >> $HH/conf/hdfs-site.xml
+echo "" >> $HH/conf/hdfs-site.xml
+echo "<configuration>" >> $HH/conf/hdfs-site.xml
+echo "  <property>" >> $HH/conf/hdfs-site.xml
+echo "    <name>dfs.name.dir</name>" >> $HH/conf/hdfs-site.xml
+echo "    <value>/home/hadoop/hdfs/name</value>" >> $HH/conf/hdfs-site.xml
+echo "  </property>" >> $HH/conf/hdfs-site.xml
+echo "" >> $HH/conf/hdfs-site.xml
+echo "  <property>" >> $HH/conf/hdfs-site.xml
+echo "    <name>dfs.data.dir</name>" >> $HH/conf/hdfs-site.xml
+echo "    <value>/home/hadoop/hdfs/data</value>" >> $HH/conf/hdfs-site.xml
+echo "  </property>" >> $HH/conf/hdfs-site.xml
+echo "" >> $HH/conf/hdfs-site.xml
+echo "  <property>" >> $HH/conf/hdfs-site.xml
+echo "    <name>dfs.replication</name>" >> $HH/conf/hdfs-site.xml
+echo "    <value>3</value>" >> $HH/conf/hdfs-site.xml
+echo "  </property>" >> $HH/conf/hdfs-site.xml
+echo "</configuration>" >> $HH/conf/hdfs-site.xml
+
+# mapred-site.xml
+echo "<?xml version=\"1.0\"?>" > $HH/conf/mapred-site.xml
+echo "<?xml-stylesheet type=\"text/xsl\" href=\"configuration.xsl\"?>" >> $HH/conf/mapred-site.xml
+echo "" >> $HH/conf/mapred-site.xml
+echo "<!-- Put site-specific property overrides in this file. -->" >> $HH/conf/mapred-site.xml
+echo "" >> $HH/conf/mapred-site.xml
+echo "<configuration>" >> $HH/conf/mapred-site.xml
+echo "  <property>" >> $HH/conf/mapred-site.xml
+echo "    <name>mapred.job.tracker</name>" >> $HH/conf/mapred-site.xml
+echo "    <value>master:9001</value>" >> $HH/conf/mapred-site.xml
+echo "  </property>" >> $HH/conf/mapred-site.xml
+echo "</configuration>" >> $HH/conf/mapred-site.xml
+
+# masters, slaves
+echo "master" > $HH/conf/masters
+echo "slave1" > $HH/conf/slaves
+echo "slave2" >> $HH/conf/slaves
+#====#
 
 # Environment Setting
+chown -R hadoop:hadoop /home/hadoop
+chmod 755 -R /home/hadoop
 echo "" >> ~hadoop/.bashrc
 echo "export JAVA_HOME=$JH" >> ~hadoop/.bashrc
+echo "export M2_HOME=$tools/maven" >> ~hadoop/.bashrc
 echo "export PATH=\$PATH:\$JAVA_HOME/bin:\$HH/bin" >> ~hadoop/.bashrc
+echo "export PATH=\$PATH:\$M2_HOME/bin" >> ~hadoop/.bashrc
 
 # /etc/hosts Setting
 echo "fe00::0 ip6-localnet" > /etc/hosts
@@ -123,6 +198,29 @@ echo "ff02::3 ip6-allhosts" >> /etc/hosts
 echo "192.168.200.2 master" >> /etc/hosts
 echo "192.168.200.10 slave1" >> /etc/hosts
 echo "192.168.200.11 slave2" >> /etc/hosts
+```
+
+### Shell Script 작성2
+나중에 SSH의 Public Key를 전달하기 위한 스크립트를 작성해서 project 디렉토리에 넣어둡니다.
+파일명은 'ssh_setting.sh'로 합니다.
+```
+#!/bin/bash
+
+# SSH's public key sharing
+expect << EOF
+    spawn ssh-keygen -t rsa
+    expect "Enter file in which to save the key (/home/hadoop//.ssh/id_rsa):"
+        send "\n"
+    expect "Enter passphrase (empty for no passphrase):"
+        send "\n"
+    expect "Enter same passphrase again:"
+        send "\n"
+    expect eof
+EOF
+
+cat ~/.ssh/id_rsa.pub > ~/.ssh/authorized_keys
+cat ~/.ssh/id_rsa.pub | ssh hadoop@slave1 "mkdir ~/.ssh; cat > ~/.ssh/authorized_keys"
+cat ~/.ssh/id_rsa.pub | ssh hadoop@slave2 "mkdir ~/.ssh; cat > ~/.ssh/authorized_keys"
 ```
 
 ### vagrant up!
@@ -168,22 +266,17 @@ vagrant : vagrant
 hadoop : hadoop
 ```
 
-### 주의! 하둡 설정에 관련된 부분은 전부 master VM, hadoop 계정에서만 수행합니다!
-
-### SSH public key 공유
+### SSH public key 공유(master에서만 수행)
 우선 master VM으로 위의 port를 참고하여 접속합니다. (hadoop/hadoop)
+그 후에 public key를 공유하기 위한 쉘 스크립트를 수행
+각 슬레이브에 대해서 'yes' -> 'hadoop' 패스워드를 입력해 주면 됩니다.
 ```
-아래 명령어를 입력하고, 패스워드를 설정하는 부분에서는 엔터만 칩니다.
-ssh-keygen -t rsa
-cat ~/.ssh/id_rsa.pub > authorized_keys
-
-ssh-copy-id 명령어를 치게 되면 묻는 장면이 나오는데, yes를 쳐주고
-hadoop 패스워드를 입력해 주시면 됩니다.
-ssh-copy-id -i ~/.ssh/id_rsa.pub hadoop@slave1
-ssh-copy-id -i ~/.ssh/id_rsa.pub hadoop@slave2
+cd ~/
+./ssh_setting.sh
 
 ========== logs ==========
-hadoop@master:/home/hadoop$ ssh-keygen -t rsa
+hadoop@master:/home/hadoop$ ./ssh_setting.sh
+spawn ssh-keygen -t rsa
 Generating public/private rsa key pair.
 Enter file in which to save the key (/home/hadoop//.ssh/id_rsa):
 Created directory '/home/hadoop//.ssh'.
@@ -192,33 +285,29 @@ Enter same passphrase again:
 Your identification has been saved in /home/hadoop//.ssh/id_rsa.
 Your public key has been saved in /home/hadoop//.ssh/id_rsa.pub.
 The key fingerprint is:
-1f:2d:2d:ac:97:3b:b9:da:e9:b9:60:f9:a8:90:5f:1b hadoop@master
+d8:dc:17:08:58:e3:9e:29:2c:58:ed:62:b4:94:81:7b hadoop@master
 The key's randomart image is:
 +--[ RSA 2048]----+
+|   ..  o+        |
+|  .  +.. o .     |
+|   .= . . . .    |
+|  .=E+ = +   .   |
+|  ..= = S . .    |
+|   . o .   .     |
 |                 |
 |                 |
 |                 |
-|         . o     |
-|        S = o    |
-|     .   + =     |
-|    o   E +.     |
-|     o o Oo+     |
-|      o.+oX+     |
 +-----------------+
-
-hadoop@master:/home/hadoop$ cat ~/.ssh/id_rsa.pub > authorized_keys
-hadoop@master:/home/hadoop$ ssh-copy-id -i ~/.ssh/id_rsa.pub hadoop@slave1
 The authenticity of host 'slave1 (192.168.200.10)' can't be established.
-ECDSA key fingerprint is 2b:fb:1c:b0:7a:d5:ea:11:b9:e6:f8:7e:60:9b:b9:cc.
+ECDSA key fingerprint is 92:9b:5b:12:56:98:84:00:28:4f:04:13:55:1a:62:63.
 Are you sure you want to continue connecting (yes/no)? yes
-/usr/bin/ssh-copy-id: INFO: attempting to log in with the new key(s), to filter out any that are already installed
-/usr/bin/ssh-copy-id: INFO: 1 key(s) remain to be installed -- if you are prompted now it is to install the new keys
+Warning: Permanently added 'slave1,192.168.200.10' (ECDSA) to the list of known hosts.
 hadoop@slave1's password:
-
-Number of key(s) added: 1
-
-Now try logging into the machine, with:   "ssh 'hadoop@slave1'"
-and check to make sure that only the key(s) you wanted were added.
+The authenticity of host 'slave2 (192.168.200.11)' can't be established.
+ECDSA key fingerprint is c0:28:b5:f8:c5:40:3e:b1:8d:67:94:43:b5:0a:6c:75.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'slave2,192.168.200.11' (ECDSA) to the list of known hosts.
+hadoop@slave2's password:
 ```
 
 ### SSH 접속이 패스워드 없이 되는지 확인
@@ -236,127 +325,7 @@ Welcome to Ubuntu 14.04.1 LTS (GNU/Linux 3.13.0-44-generic x86_64)
  * Documentation:  https://help.ubuntu.com/
 
   System information as of Sat Jan 24 05:28:35 UTC 2015
-```
-
-### hadoop_env.sh 파일 편집
-해당 파일은 Hadoop을 구동하는 스크립트에서 사용되는 환경 변수가 정의된 파일입니다.
-/home/hadoop/tools/hadoop/conf/hadoop_env.sh 파일을 편집합니다.
-export JAVA_HOME의 주석을 풀어주고, JAVA_HOME의 디렉토리 경로를 입력합니다.
-또한 export HADOOP_HOME, HADOOP_HOME_WARN_SUPRESS 두 줄을 추가해줍니다.
-마지막으로는 export HADOOP_OPTS=-server 의 주석을 해제해 줍니다.
-```
-vi ~/tools/hadoop/conf/hadoop-env.sh
-
-========== 주석 해제 및 편집할 내용 ==========
-export JAVA_HOME=/home/hadoop/tools/jdk
-export HADOOP_HOME=/home/hadoop/tools/hadoop
-export HADOOP_HOME_WARN_SUPRESS="TRUE"
-export HADOOP_OPTS=-server
-```
-
-### core-site.xml 파일 편집
-해당 파일은 HDFS와 MapReduce에 공통적으로 사용되는
-I/O 설정같은 Hadoop Core를 위한 설정파일입니다.
-해당 파일을 아래와 같이 편집합니다.
-```
-vi ~/tools/hadoop/conf/core-site.xml
-
-========== 편집할 내용 ==========
-<?xml version="1.0"?>
-<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
-
-<!-- Put site-specific property overrides in this file. -->
-
-<configuration>
-  <property>
-    <name>fs.default.name</name>
-    <value>hdfs://master:9000</value>
-  </property>
-</configuration>
-```
-
-### hdfs-site.xml 파일 편집
-NameNode, SecondaryNode, DataNode 등 HDFS 데몬을 위한 설정파일입니다.
-아래와 같이 편집합니다.
-```
-vi ~/tools/hadoop/conf/hdfs-site.xml
-
-========== 편집할 내용 ==========
-<?xml version="1.0"?>
-<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
-
-<!-- Put site-specific property overrides in this file. -->
-
-<configuration>
-  <property>
-    <name>dfs.name.dir</name>
-    <value>/home/hadoop/hdfs/name</value>
-  </property>
-
-  <property>
-    <name>dfs.data.dir</name>
-    <value>/home/hadoop/hdfs/data</value>
-  </property>
-
-  <property>
-    <name>dfs.replication</name>
-    <value>3</value>
-  </property>
-</configuration>
-```
-
-### mapred-site.xml 파일 편집
-Job Tracker와 Task Tracker와 같은 MapReduce 데몬에 사용되는 설정파일입니다.
-```
-vi ~/tools/hadoop/conf/mapred-site.xml
-
-========== 편집할 내용 ==========
-<?xml version="1.0"?>
-<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
-
-<!-- Put site-specific property overrides in this file. -->
-
-<configuration>
-  <property>
-    <name>mapred.job.tracker</name>
-    <value>master:9001</value>
-  </property>
-</configuration>
-```
-
-### masters, slaves 파일 편집
-masters 파일과 slaves 파일을 아래와 같이 편집합니다.
-```
-hadoop@master:/home/hadoop$ vi ~/tools/hadoop/conf/masters
-hadoop@master:/home/hadoop$ cat ~/tools/hadoop/conf/masters
-master
-
-hadoop@master:/home/hadoop$ vi ~/tools/hadoop/conf/slaves
-hadoop@master:/home/hadoop$ cat ~/tools/hadoop/conf/slaves
-slave1
-slave2
-```
-
-### 편집한 설정 파일들을 slave들에게 넘겨줍니다.
-```
-rsync -av /home/hadoop/tools/hadoop/conf/ slave1:/home/hadoop/tools/hadoop/conf
-rsync -av /home/hadoop/tools/hadoop/conf/ slave2:/home/hadoop/tools/hadoop/conf
-
-========== logs ==========
-hadoop@master:/home/hadoop$ rsync -av /home/hadoop/tools/hadoop/conf/ slave1:/home/hadoop/tools/hadoop/conf
-sending incremental file list
-
-sent 512 bytes  received 12 bytes  349.33 bytes/sec
-total size is 34,475  speedup is 65.79
-hadoop@master:/home/hadoop$ rsync -av /home/hadoop/tools/hadoop/conf/ slave2:/home/hadoop/tools/hadoop/conf
-sending incremental file list
-./
-core-site.xml
-hadoop-env.sh
-hdfs-site.xml
-mapred-site.xml
-masters
-slaves
+( 생략 )
 ```
 
 ### 하둡 NameNode format
