@@ -1,10 +1,17 @@
 ### Project Directory 만들기
 Command 창을 열어서 아래와 같이 디렉토리를 만들고, 해당 디렉토리로 이동합니다.
+vagrant init을 통해 초기화를 해주고, vagrant box add 명령어 사용해서 박스를 추가해 줍니다.
 ```
 cd \
 md project
 cd project
 vagrant init
+vagrant box add ubuntu/trusty64
+vagrant box list
+
+========== Logs ==========
+C:\Project>vagrant box list
+ubuntu/trusty64 (virtualbox, 14.04)
 ```
 
 ### Vagrantfile 설정
@@ -107,6 +114,7 @@ echo "192.168.200.11 sslave2" >> /etc/hosts
 ```
 
 ### vagrant up!
+해당 Vagrantfile에서 사용할 VM들의 이름은 각각 'master', 'slave1', 'slave2' 입니다. 혹시 동일한 이름의 VM이 존재한다면 Vagrantfile의 v.name을 수정해야 합니다.
 ```
 cd \project
 vagrant up
@@ -117,5 +125,5 @@ Bringing machine 'master' up with 'virtualbox' provider...
 Bringing machine 'slave1' up with 'virtualbox' provider...
 Bringing machine 'slave2' up with 'virtualbox' provider...
 ==> master: Importing base box 'ubuntu/trusty64'...
-( 중략 )
+( 중략 ) // JDK 등의 설치 작업으로 시간이 소요됩니다.
 ```
