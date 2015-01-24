@@ -108,9 +108,9 @@ echo "ff00::0 ip6-mcastprefix" >> /etc/hosts
 echo "ff02::1 ip6-allnodes" >> /etc/hosts
 echo "ff02::2 ip6-allrouters" >> /etc/hosts
 echo "ff02::3 ip6-allhosts" >> /etc/hosts
-echo "192.168.200.2 mmaster" >> /etc/hosts
-echo "192.168.200.10 sslave1" >> /etc/hosts
-echo "192.168.200.11 sslave2" >> /etc/hosts
+echo "192.168.200.2 master" >> /etc/hosts
+echo "192.168.200.10 slave1" >> /etc/hosts
+echo "192.168.200.11 slave2" >> /etc/hosts
 ```
 
 ### vagrant up!
