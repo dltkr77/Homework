@@ -168,12 +168,17 @@ vagrant : vagrant
 hadoop : hadoop
 ```
 
-### SSH public key 공유 (master에서만 수행)
+### 주의! 하둡 설정에 관련된 부분은 전부 master VM, hadoop 계정에서만 수행합니다!
+
+### SSH public key 공유
 우선 master VM으로 위의 port를 참고하여 접속합니다. (hadoop/hadoop)
 ```
 아래 명령어를 입력하고, 패스워드를 설정하는 부분에서는 엔터만 칩니다.
 ssh-keygen -t rsa
 cat ~/.ssh/id_rsa.pub > authorized_keys
+
+ssh-copy-id 명령어를 치게 되면 묻는 장면이 나오는데, yes를 쳐주고
+hadoop 패스워드를 입력해 주시면 됩니다.
 ssh-copy-id -i ~/.ssh/id_rsa.pub hadoop@slave1
 ssh-copy-id -i ~/.ssh/id_rsa.pub hadoop@slave2
 
@@ -214,4 +219,270 @@ Number of key(s) added: 1
 
 Now try logging into the machine, with:   "ssh 'hadoop@slave1'"
 and check to make sure that only the key(s) you wanted were added.
+```
+
+### SSH 접속이 패스워드 없이 되는지 확인
+아래와 같이 패스워드가 없이 접속이 되는지 확인 후, exit로 빠져나옵니다.
+```
+ssh hadoop@slave1
+exit
+ssh hadoop@slave2
+exit
+
+========== logs ==========
+hadoop@master:/home/hadoop$ ssh hadoop@slave1
+Welcome to Ubuntu 14.04.1 LTS (GNU/Linux 3.13.0-44-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com/
+
+  System information as of Sat Jan 24 05:28:35 UTC 2015
+```
+
+### hadoop_env.sh 파일 편집
+해당 파일은 Hadoop을 구동하는 스크립트에서 사용되는 환경 변수가 정의된 파일입니다.
+/home/hadoop/tools/hadoop/conf/hadoop_env.sh 파일을 편집합니다.
+export JAVA_HOME의 주석을 풀어주고, JAVA_HOME의 디렉토리 경로를 입력합니다.
+또한 export HADOOP_HOME, HADOOP_HOME_WARN_SUPRESS 두 줄을 추가해줍니다.
+마지막으로는 export HADOOP_OPTS=-server 의 주석을 해제해 줍니다.
+```
+vi ~/tools/hadoop/conf/hadoop-env.sh
+
+========== 주석 해제 및 편집할 내용 ==========
+export JAVA_HOME=/home/hadoop/tools/jdk
+export HADOOP_HOME=/home/hadoop/tools/hadoop
+export HADOOP_HOME_WARN_SUPRESS="TRUE"
+export HADOOP_OPTS=-server
+```
+
+### core-site.xml 파일 편집
+해당 파일은 HDFS와 MapReduce에 공통적으로 사용되는
+I/O 설정같은 Hadoop Core를 위한 설정파일입니다.
+해당 파일을 아래와 같이 편집합니다.
+```
+vi ~/tools/hadoop/conf/core-site.xml
+
+========== 편집할 내용 ==========
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+<!-- Put site-specific property overrides in this file. -->
+
+<configuration>
+  <property>
+    <name>fs.default.name</name>
+    <value>hdfs://master:9000</value>
+  </property>
+</configuration>
+```
+
+### hdfs-site.xml 파일 편집
+NameNode, SecondaryNode, DataNode 등 HDFS 데몬을 위한 설정파일입니다.
+아래와 같이 편집합니다.
+```
+vi ~/tools/hadoop/conf/hdfs-site.xml
+
+========== 편집할 내용 ==========
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+<!-- Put site-specific property overrides in this file. -->
+
+<configuration>
+  <property>
+    <name>dfs.name.dir</name>
+    <value>/home/hadoop/hdfs/name</value>
+  </property>
+
+  <property>
+    <name>dfs.data.dir</name>
+    <value>/home/hadoop/hdfs/data</value>
+  </property>
+
+  <property>
+    <name>dfs.replication</name>
+    <value>3</value>
+  </property>
+</configuration>
+```
+
+### mapred-site.xml 파일 편집
+Job Tracker와 Task Tracker와 같은 MapReduce 데몬에 사용되는 설정파일입니다.
+```
+vi ~/tools/hadoop/conf/mapred-site.xml
+
+========== 편집할 내용 ==========
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+<!-- Put site-specific property overrides in this file. -->
+
+<configuration>
+  <property>
+    <name>mapred.job.tracker</name>
+    <value>master:9001</value>
+  </property>
+</configuration>
+```
+
+### masters, slaves 파일 편집
+masters 파일과 slaves 파일을 아래와 같이 편집합니다.
+```
+hadoop@master:/home/hadoop$ vi ~/tools/hadoop/conf/masters
+hadoop@master:/home/hadoop$ cat ~/tools/hadoop/conf/masters
+master
+
+hadoop@master:/home/hadoop$ vi ~/tools/hadoop/conf/slaves
+hadoop@master:/home/hadoop$ cat ~/tools/hadoop/conf/slaves
+slave1
+slave2
+```
+
+### 편집한 설정 파일들을 slave들에게 넘겨줍니다.
+```
+rsync -av /home/hadoop/tools/hadoop/conf/ slave1:/home/hadoop/tools/hadoop/conf
+rsync -av /home/hadoop/tools/hadoop/conf/ slave2:/home/hadoop/tools/hadoop/conf
+
+========== logs ==========
+hadoop@master:/home/hadoop$ rsync -av /home/hadoop/tools/hadoop/conf/ slave1:/home/hadoop/tools/hadoop/conf
+sending incremental file list
+
+sent 512 bytes  received 12 bytes  349.33 bytes/sec
+total size is 34,475  speedup is 65.79
+hadoop@master:/home/hadoop$ rsync -av /home/hadoop/tools/hadoop/conf/ slave2:/home/hadoop/tools/hadoop/conf
+sending incremental file list
+./
+core-site.xml
+hadoop-env.sh
+hdfs-site.xml
+mapred-site.xml
+masters
+slaves
+```
+
+### 하둡 NameNode format
+```
+cd ~/tools/hadoop/bin
+./hadoop namenode -format
+위에서 묻는 장면에서 꼭 대문자 Y를 입력. (소문자 안됨)
+
+========== logs ==========
+hadoop@master:/home/hadoop/tools/hadoop/bin$ ./hadoop namenode -format
+Warning: $HADOOP_HOME is deprecated.
+
+15/01/24 06:01:04 INFO namenode.NameNode: STARTUP_MSG:
+/************************************************************
+STARTUP_MSG: Starting NameNode
+STARTUP_MSG:   host = master/192.168.200.2
+STARTUP_MSG:   args = [-format]
+STARTUP_MSG:   version = 1.2.1
+STARTUP_MSG:   build = https://svn.apache.org/repos/asf/hadoop/common/branches/branch-1.2 -r 1503152; compiled by 'mattf' on Mon Jul 22 15:23:09 PDT 2013
+STARTUP_MSG:   java = 1.7.0_65
+************************************************************/
+Re-format filesystem in /home/hadoop/hdfs/name ? (Y or N) Y
+15/01/24 06:01:06 INFO util.GSet: Computing capacity for map BlocksMap
+15/01/24 06:01:06 INFO util.GSet: VM type       = 64-bit
+15/01/24 06:01:06 INFO util.GSet: 2.0% max memory = 1013645312
+15/01/24 06:01:06 INFO util.GSet: capacity      = 2^21 = 2097152 entries
+15/01/24 06:01:06 INFO util.GSet: recommended=2097152, actual=2097152
+15/01/24 06:01:06 INFO namenode.FSNamesystem: fsOwner=hadoop
+15/01/24 06:01:06 INFO namenode.FSNamesystem: supergroup=supergroup
+15/01/24 06:01:06 INFO namenode.FSNamesystem: isPermissionEnabled=true
+15/01/24 06:01:06 INFO namenode.FSNamesystem: dfs.block.invalidate.limit=100
+15/01/24 06:01:06 INFO namenode.FSNamesystem: isAccessTokenEnabled=false accessKeyUpdateInterval=0 min(s), accessTokenLifetime=0 min(s)
+15/01/24 06:01:06 INFO namenode.FSEditLog: dfs.namenode.edits.toleration.length = 0
+15/01/24 06:01:06 INFO namenode.NameNode: Caching file names occuring more than 10 times
+15/01/24 06:01:06 INFO common.Storage: Image file /home/hadoop/hdfs/name/current/fsimage of size 112 bytes saved in 0 seconds.
+15/01/24 06:01:07 INFO namenode.FSEditLog: closing edit log: position=4, editlog=/home/hadoop/hdfs/name/current/edits
+15/01/24 06:01:07 INFO namenode.FSEditLog: close success: truncate to 4, editlog=/home/hadoop/hdfs/name/current/edits
+15/01/24 06:01:07 INFO common.Storage: Storage directory /home/hadoop/hdfs/name has been successfully formatted.
+15/01/24 06:01:07 INFO namenode.NameNode: SHUTDOWN_MSG:
+/************************************************************
+SHUTDOWN_MSG: Shutting down NameNode at master/192.168.200.2
+************************************************************/
+```
+
+### 하둡 실행 및 확인
+```
+./start-all.sh
+jps
+
+각 slave들도 jps 명령어로 확인을 해봅니다.
+명령어 확인 결과로,
+
+master : JPS, JobTracker, NameNode, SecondaryNameNode
+slave : JPS, TaskTracker, DataNode
+가 올라와 있으면 정상입니다.
+
+========== logs ==========
+hadoop@master:/home/hadoop/tools/hadoop/bin$ ./start-all.sh
+Warning: $HADOOP_HOME is deprecated.
+
+starting namenode, logging to /home/hadoop/tools/hadoop/logs/hadoop-hadoop-namenode-master.out
+( 중략 )
+slave2:
+slave2: starting tasktracker, logging to /home/hadoop/tools/hadoop/logs/hadoop-hadoop-tasktracker-slave2.out
+slave1: Warning: $HADOOP_HOME is deprecated.
+slave1:
+slave1: starting tasktracker, logging to /home/hadoop/tools/hadoop/logs/hadoop-hadoop-tasktracker-slave1.out
+
+hadoop@master:/home/hadoop/tools/hadoop/bin$ jps
+13921 Jps
+13847 JobTracker
+13567 NameNode
+13775 SecondaryNameNode
+
+hadoop@slave1:~$ jps
+13339 Jps
+13241 TaskTracker
+13104 DataNode
+```
+
+### Wordcount (example jar 파일사용) Test
+하둡이 제대로 실행되는지 확인하기 위해 Wordcount를 한 번 돌려보겠습니다.
+```
+cd ~/tools/hadoop/bin/
+./hadoop dfs -mkdir input
+./hadoop dfs -ls
+./hadoop dfs -put ../LICENSE.txt input
+./hadoop jar ../hadoop-examples-1.2.1.jar wordcount input output
+./hadoop dfs -ls output
+./hadoop dfs -cat output/part-r-00000
+
+========== logs ==========
+hadoop@master:/home/hadoop/tools/hadoop/bin$ ./hadoop dfs -mkdir input
+hadoop@master:/home/hadoop/tools/hadoop/bin$ ./hadoop dfs -ls
+
+Found 1 items
+drwxr-xr-x   - hadoop supergroup          0 2015-01-24 06:10 /user/hadoop/input
+hadoop@master:/home/hadoop/tools/hadoop/bin$ ./hadoop dfs -put ../LICENSE.txt input
+
+hadoop@master:/home/hadoop/tools/hadoop/bin$ ./hadoop jar ../hadoop-examples-1.2.1.jar wordcount input output
+
+15/01/24 06:10:55 INFO input.FileInputFormat: Total input paths to process : 1
+15/01/24 06:10:55 INFO util.NativeCodeLoader: Loaded the native-hadoop library
+15/01/24 06:10:55 WARN snappy.LoadSnappy: Snappy native library not loaded
+15/01/24 06:10:55 INFO mapred.JobClient: Running job: job_201501240603_0001
+15/01/24 06:10:56 INFO mapred.JobClient:  map 0% reduce 0%
+15/01/24 06:11:04 INFO mapred.JobClient:  map 100% reduce 0%
+15/01/24 06:11:12 INFO mapred.JobClient:  map 100% reduce 33%
+15/01/24 06:11:13 INFO mapred.JobClient:  map 100% reduce 100%
+15/01/24 06:11:15 INFO mapred.JobClient: Job complete: job_201501240603_0001
+15/01/24 06:11:15 INFO mapred.JobClient: Counters: 29
+( 중략 )
+15/01/24 06:11:15 INFO mapred.JobClient:     Virtual memory (bytes) snapshot=1500114944
+15/01/24 06:11:15 INFO mapred.JobClient:     Map output records=1887
+
+hadoop@master:/home/hadoop/tools/hadoop/bin$ ./hadoop dfs -ls output
+
+Found 3 items
+-rw-r--r--   3 hadoop supergroup          0 2015-01-24 06:11 /user/hadoop/output/_SUCCESS
+drwxr-xr-x   - hadoop supergroup          0 2015-01-24 06:10 /user/hadoop/output/_logs
+-rw-r--r--   3 hadoop supergroup       7376 2015-01-24 06:11 /user/hadoop/output/part-r-00000
+
+hadoop@master:/home/hadoop/tools/hadoop/bin$ ./hadoop dfs -cat output/part-r-00000
+
+"AS     3
+"Contribution"  1
+"Contributor"   1
+( 생략 )
 ```
