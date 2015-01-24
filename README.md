@@ -1,4 +1,13 @@
+### Project Directory 만들기
+Command 창을 열어서 아래와 같이 디렉토리를 만들고, 해당 디렉토리로 이동합니다.
+```
+cd \
+md project
+cd project
+vagrant init
+```
 ### Vagrantfile 설정
+
 ```
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
