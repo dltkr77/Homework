@@ -1,4 +1,4 @@
-### Project Directory 만들기
+﻿### Project Directory 만들기
 Command 창을 열어서 아래와 같이 디렉토리를 만들고, 해당 디렉토리로 이동합니다.
 vagrant init을 통해 초기화를 해주고, vagrant box add 명령어 사용해서 박스를 추가해 줍니다.
 ```
@@ -75,19 +75,31 @@ HH=/home/hadoop/tools/hadoop
 # Install jdk
 apt-get install -y openjdk-7-jre-headless
 apt-get install -y openjdk-7-jdk
-apt-get install -y expect\
+
+# Install expect
+apt-get install -y expect
 
 # Add group and user
 addgroup hadoop
 useradd -g hadoop -d /home/hadoop/ -s /bin/bash -m hadoop
+expect << EOF
+    spawn passwd hadoop
+    expect "Enter new UNIX password:"
+        send "hadoop"
+    expect "Retype new UNIX password:"
+        send "hadoop"
+    expect eof
+EOF
 
-# Download hadoop
+# hadoop user's password change
 host=`hostname`
 if [ $host == "master" ]; then
 	mkdir -p /home/hadoop/hdfs/name
 else
 	mkdir -p /home/hadoop/hdfs/data
 fi
+
+# Download hadoop
 mkdir $tools
 cd $tools
 wget http://ftp.daum.net/apache//hadoop/common/hadoop-1.2.1/hadoop-1.2.1.tar.gz
@@ -97,12 +109,12 @@ ln -s /usr/lib/jvm/java-1.7.0-openjdk-amd64 $tools/jdk
 chown -R hadoop:hadoop /home/hadoop
 chmod 755 -R /home/hadoop
 
-# Setting environment
+# Environment Setting
 echo "" >> ~hadoop/.bashrc
 echo "export JAVA_HOME=$JH" >> ~hadoop/.bashrc
 echo "export PATH=\$PATH:\$JAVA_HOME/bin:\$HH/bin" >> ~hadoop/.bashrc
 
-# Setting Hosts
+# /etc/hosts Setting
 echo "fe00::0 ip6-localnet" > /etc/hosts
 echo "ff00::0 ip6-mcastprefix" >> /etc/hosts
 echo "ff02::1 ip6-allnodes" >> /etc/hosts
@@ -126,4 +138,5 @@ Bringing machine 'slave1' up with 'virtualbox' provider...
 Bringing machine 'slave2' up with 'virtualbox' provider...
 ==> master: Importing base box 'ubuntu/trusty64'...
 ( 중략 ) // JDK 등의 설치 작업으로 시간이 소요됩니다.
+
 ```
