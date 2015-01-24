@@ -131,12 +131,37 @@ echo "192.168.200.11 slave2" >> /etc/hosts
 cd \project
 vagrant up
 
----- Logs ----
+========== Logs ==========
 C:\Project>vagrant up
 Bringing machine 'master' up with 'virtualbox' provider...
 Bringing machine 'slave1' up with 'virtualbox' provider...
 Bringing machine 'slave2' up with 'virtualbox' provider...
 ==> master: Importing base box 'ubuntu/trusty64'...
 ( 중략 ) // JDK 등의 설치 작업으로 시간이 소요됩니다.
+==> slave2: hadoop-1.2.1/src/test/system/java/org/apache/hadoop/mapred/TestTaskT
+rackerInfoSuccessfulFailedJobs.java
+==> slave2: hadoop-1.2.1/src/test/system/java/org/apache/hadoop/mapred/TestTaskT
+rackerInfoTTProcess.java
+==> slave2: hadoop-1.2.1/src/test/system/java/org/apache/hadoop/mapreduce/test/s
+ystem/FinishTaskControlAction.java
+==> slave2: hadoop-1.2.1/src/test/system/java/org/apache/hadoop/mapreduce/test/s
+ystem/JTClient.java
+==> slave2: hadoop-1.2.1/src/test/system/java/org/apac
+```
 
+### 환경을 알아두고 넘어갑시다!
+VM들의 SSH Port와 각 계정 설정은 아래와 같습니다.
+```
+master : 2222 Port
+slave1 : 2200 Port
+slave2 : 2201 Port
+※ 주의사항 : 해당 포트들이 사용되고 있는지 꼭! 확인하세요.
+master -> slave1 -> slave2 순서로 포트가 할당이 되며 순서는 아래와 같습니다.
+2222 -> 2200 -> 2201 -> 2202 -> 2203 -> 2204...
+중간에 사용이 되고 있는 port가 있을 경우, 다음 번호를 사용하게 됩니다. (즉 2222포트가 사용중이라면 master의 포트는 2200이 됩니다.)
+
+========== 아이디 : 패스워드 ==========
+root : vagant
+vagrant : vagrant
+hadoop : hadoop
 ```
