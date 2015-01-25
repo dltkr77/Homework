@@ -53,7 +53,7 @@ public class MyFreq extends Configured implements Tool {
 	public static class MyMapper extends Mapper<LongWritable, Text, Text, IntWritable> {
 		/*
 		 * Input : offset, line
-		 * Output : word/docid, 1
+		 * Output : word + " " + docid, 1
 		 */
 		@Override
 		protected void map(LongWritable key, Text value,
@@ -63,9 +63,9 @@ public class MyFreq extends Configured implements Tool {
 			FileSplit fs = (FileSplit)context.getInputSplit();
 			String docid = fs.getPath().getName();
 			
-			for(String word : line.split("\\W+")) {
+			for(String word : line.split("\\s+")) {
 				if(word.length() > 0) {
-					context.write(new Text(word.toLowerCase() + "/" + docid),  new IntWritable(1));
+					context.write(new Text(word.toLowerCase() + " " + docid),  new IntWritable(1));
 				}
 			}
 		}
@@ -73,8 +73,8 @@ public class MyFreq extends Configured implements Tool {
 	
 	public static class MyReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
 		/*
-		 * Input : word/docid, 1[]
-		 * Output : word/docid, freq
+		 * Input : word + " " + docid, 1[]
+		 * Output : word + " " + docid, freq
 		 */
 		@Override
 		protected void reduce(Text key, Iterable<IntWritable> values,
