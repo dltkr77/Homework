@@ -186,7 +186,7 @@ chmod 755 -R /home/hadoop
 echo "" >> ~hadoop/.bashrc
 echo "export JAVA_HOME=$JH" >> ~hadoop/.bashrc
 echo "export M2_HOME=$tools/maven" >> ~hadoop/.bashrc
-echo "export PATH=\$PATH:\$JAVA_HOME/bin:\$HH/bin" >> ~hadoop/.bashrc
+echo "export PATH=\$PATH:\$JAVA_HOME/bin:$HH/bin" >> ~hadoop/.bashrc
 echo "export PATH=\$PATH:\$M2_HOME/bin" >> ~hadoop/.bashrc
 
 # /etc/hosts Setting
@@ -218,7 +218,7 @@ expect << EOF
     expect eof
 EOF
 
-cat ~/.ssh/id_rsa.pub > ~/.ssh/authorized_keys
+cat ~/.ssh/id_rsa.pub | ssh hadoop@master "cat > ~/.ssh/authorized_keys"
 cat ~/.ssh/id_rsa.pub | ssh hadoop@slave1 "mkdir ~/.ssh; cat > ~/.ssh/authorized_keys"
 cat ~/.ssh/id_rsa.pub | ssh hadoop@slave2 "mkdir ~/.ssh; cat > ~/.ssh/authorized_keys"
 ```
@@ -269,7 +269,7 @@ hadoop : hadoop
 ### SSH public key 공유(master에서만 수행)
 우선 master VM으로 위의 port를 참고하여 접속합니다. (hadoop/hadoop)
 그 후에 public key를 공유하기 위한 쉘 스크립트를 수행
-각 슬레이브에 대해서 'yes' -> 'hadoop' 패스워드를 입력해 주면 됩니다.
+각 VM에 대해서 'yes' -> 'hadoop' 패스워드를 입력해 주면 됩니다.
 ```
 cd ~/
 ./ssh_setting.sh
@@ -313,6 +313,8 @@ hadoop@slave2's password:
 ### SSH 접속이 패스워드 없이 되는지 확인
 아래와 같이 패스워드가 없이 접속이 되는지 확인 후, exit로 빠져나옵니다.
 ```
+ssh hadoop@master
+exit
 ssh hadoop@slave1
 exit
 ssh hadoop@slave2
@@ -649,6 +651,7 @@ Define value for property 'artifactId': : MyTFIDF
 Define value for property 'version':  1.0-SNAPSHOT: : [엔터]
 Define value for property 'package':  MyTFIDF: : [엔터]
  Y: : [엔터]
+cd ~/MyTFIDF/
 cp ~/homework/src/MyTFIDF.java ~/MyTFIDF/src/main/java/MyTFIDF/
 cp ~/homework/mytfidf_pom.xml ~/MyTFIDF/pom.xml
 rm -rf ~/MyTFIDF/src/main/java/MyTFIDF/App.java
