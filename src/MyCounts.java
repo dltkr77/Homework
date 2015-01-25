@@ -98,11 +98,11 @@ public class MyCounts extends Configured implements Tool {
 				String freq = map.get(worddoc);
 				/* 
 				 * ex) key   : john bible
-				 *     value : 15, 7
+				 *     value : 15, 3
 				 * ex) key   : john book
-				 *     value : 15, 8
+				 *     value : 2, 3
 				 *     
-				 *     value : Total freq, each file's freq
+				 *     value : freq, file's count
 				 */
 				context.write(worddoc, new Text(freq + " " + count));
 			}

@@ -460,12 +460,12 @@ hadoop@master:/home/hadoop/tools/hadoop/bin$ ./hadoop dfs -cat output/part-r-000
 이번 과제를 위한 디렉토리를 만들고, git에서 해당 자료들을 가져옵니다.
 ```
 cd
-mkdir test
-cd test
+mkdir homework
+cd homework
 git clone https://github.com/dltkr77/Homework ./
 
 ========== logs ==========
-hadoop@master:/home/hadoop/test$ git clone https://github.com/dltkr77/Homework ./
+hadoop@master:/home/hadoop/homework$ git clone https://github.com/dltkr77/Homework ./
 Cloning into '.'...
 remote: Counting objects: 59, done.
 remote: Compressing objects: 100% (38/38), done.
@@ -474,3 +474,219 @@ Unpacking objects: 100% (59/59), done.
 Checking connectivity... done.
 ```
 
+### MyFreq 패키징
+입력으로 받은 디렉토리 내의 파일들을 읽어서, 각 단어의 출현 빈도를 세어주는 프로그램입니다.
+출력 format : [단어] [파일명] [출현 빈도]
+```
+cd
+mvn archetype:generate
+Choose a number or apply filter (format: [groupId:]artifactId, case sensitive contains): 522: [엔터]
+Choose a number: 6: [엔터]
+Define value for property 'groupId': : MyFreq
+Define value for property 'artifactId': : MyFreq
+Define value for property 'version':  1.0-SNAPSHOT: : [엔터]
+Define value for property 'package':  MyFreq: : [엔터]
+ Y: : [엔터]
+cd MyFreq/
+cp ~/homework/src/MyFreq.java ./src/main/java/MyFreq/
+rm -rf ./src/main/java/MyFreq/App.java
+cp ~/homework/myfreq_pom.xml ./pom.xml
+mvn package
+
+========== logs ==========
+hadoop@master:/home/hadoop$ mvn archetype:generate
+[INFO] Scanning for projects...
+[INFO]
+[INFO] ------------------------------------------------------------------------
+[INFO] Building Maven Stub Project (No POM) 1
+( 중략 )
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 01:24 min
+[INFO] Finished at: 2015-01-25T04:19:20+00:00
+[INFO] Final Memory: 15M/59M
+[INFO] ------------------------------------------------------------------------
+hadoop@master:/home/hadoop$ cd MyFreq/
+hadoop@master:/home/hadoop/MyFreq$ cp ~/homework/src/MyFreq.java ./src/main/java/MyFreq/
+hadoop@master:/home/hadoop/MyFreq$ rm -rf ./src/main/java/MyFreq/App.java
+hadoop@master:/home/hadoop/MyFreq$ cp ~/homework/myfreq_pom.xml ./pom.xml
+hadoop@master:/home/hadoop/MyFreq$ mvn package
+[INFO] Scanning for projects...
+[INFO]
+[INFO] ------------------------------------------------------------------------
+[INFO] Building MyFreq 1.0-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
+[INFO]
+[INFO] --- maven-resources-plugin:2.6:resources (default-resources) @ MyFreq ---
+( 중략 )
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 16.308 s
+[INFO] Finished at: 2015-01-25T04:22:54+00:00
+[INFO] Final Memory: 19M/59M
+[INFO] ------------------------------------------------------------------------
+```
+
+### MyFreq 실행해보기
+위에서 메이븐을 사용해서 빌드한 MyFreq 프로그램을 실행해봅니다.
+```
+cd ~/homework/files/
+tar xvf shakespeare.tar.gz
+cd ~/MyFreq/
+hadoop dfs -put ~/homework/files/shakespeare shakespeare
+hadoop jar ~/MyFreq/target/MyFreq-1.0-SNAPSHOT-jar-with-dependencies.jar shakespeare myfreq_output
+hadoop dfs -ls myfreq_output
+hadoop dfs -cat myfreq_output/part-r-00000
+
+========== logs ==========
+hadoop@master:/home/hadoop/MyFreq$ cd ~/homework/files/
+hadoop@master:/home/hadoop/homework/files$ tar xvf shakespeare.tar.gz
+shakespeare/
+shakespeare/comedies
+shakespeare/glossary
+shakespeare/histories
+shakespeare/poems
+shakespeare/tragedies
+hadoop@master:/home/hadoop/homework/files$ cd ~/MyFreq/
+hadoop@master:/home/hadoop/MyFreq$ hadoop dfs -put ~/homework/files/shakespeare shakespeare
+hadoop@master:/home/hadoop/MyFreq$ hadoop jar ~/MyFreq/target/MyFreq-1.0-SNAPSHOT-jar-with-dependencies.jar shakespeare myfreq_output15/01/25 04:26:10 INFO input.FileInputFormat: Total input paths to process : 5
+15/01/25 04:26:10 INFO util.NativeCodeLoader: Loaded the native-hadoop library
+15/01/25 04:26:10 WARN snappy.LoadSnappy: Snappy native library not loaded
+15/01/25 04:26:10 INFO mapred.JobClient: Running job: job_201501240857_0019
+15/01/25 04:26:11 INFO mapred.JobClient:  map 0% reduce 0%
+15/01/25 04:26:28 INFO mapred.JobClient:  map 13% reduce 0%
+15/01/25 04:26:29 INFO mapred.JobClient:  map 45% reduce 0%
+15/01/25 04:26:31 INFO mapred.JobClient:  map 72% reduce 0%
+15/01/25 04:26:32 INFO mapred.JobClient:  map 80% reduce 0%
+15/01/25 04:26:37 INFO mapred.JobClient:  map 100% reduce 0%
+15/01/25 04:26:42 INFO mapred.JobClient:  map 100% reduce 33%
+15/01/25 04:26:46 INFO mapred.JobClient:  map 100% reduce 100%
+( 중략 )
+15/01/25 04:26:47 INFO mapred.JobClient:     Physical memory (bytes) snapshot=1025097728
+15/01/25 04:26:47 INFO mapred.JobClient:     Reduce output records=107523
+15/01/25 04:26:47 INFO mapred.JobClient:     Virtual memory (bytes) snapshot=4488859648
+15/01/25 04:26:47 INFO mapred.JobClient:     Map output records=948560
+hadoop@master:/home/hadoop/MyFreq$ hadoop dfs -ls myfreq_output
+Found 3 items
+-rw-r--r--   3 hadoop supergroup          0 2015-01-25 04:26 /user/hadoop/myfreq_output/_SUCCESS
+drwxr-xr-x   - hadoop supergroup          0 2015-01-25 04:26 /user/hadoop/myfreq_output/_logs
+-rw-r--r--   3 hadoop supergroup    2109371 2015-01-25 04:26 /user/hadoop/myfreq_output/part-r-00000
+hadoop@master:/home/hadoop/MyFreq$ hadoop dfs -cat myfreq_output/part-r-00000
+( 중략 )
+zodiac tragedies        1
+zodiacs comedies        1
+zone, tragedies 1
+zounds! histories       1
+zounds, histories       1
+zwaggered tragedies     1
+| comedies      176
+| glossary      7
+| histories     122
+| tragedies     321
+```
+
+### MyCounts 패키징
+MyFreq 프로그램의 output을 이용하여, 해당 단어들이 몇 개의 문서에서 출현하는지를 알아내는 프로그램입니다.
+출력 Format : [단어], [파일명], [출현 빈도], [출현한 문서 개수]
+```
+cd
+mvn archetype:generate
+Choose a number or apply filter (format: [groupId:]artifactId, case sensitive contains): 522: [엔터]
+Choose a number: 6: [엔터]
+Define value for property 'groupId': : MyCounts
+Define value for property 'artifactId': : MyCounts
+Define value for property 'version':  1.0-SNAPSHOT: : [엔터]
+Define value for property 'package':  MyCounts: : [엔터]
+ Y: : [엔터]
+cd MyCounts/
+cp ~/homework/src/MyCounts.java ~/MyCounts/src/main/java/MyCounts/
+cp ~/homework/mycounts_pom.xml ~/MyCounts/pom.xml
+rm -rf ~/MyCounts/src/main/java/MyCounts/App.java
+mvn package
+
+( 로그는 MyFreq 패키징과 동일하므로 생략 )
+```
+
+### MyCounts 실행해보기
+```
+cd ~/MyCounts/
+hadoop jar ~/MyCounts/target/MyCounts-1.0-SNAPSHOT-jar-with-dependencies.jar myfreq_output mycounts_output
+hadoop dfs -ls mycounts_output
+hadoop dfs -cat mycounts_output/part-r-00000
+
+========== logs ==========
+( jar 실행과정 생략)
+hadoop@master:/home/hadoop/MyCounts$ hadoop dfs -ls mycounts_output
+Found 3 items
+-rw-r--r--   3 hadoop supergroup          0 2015-01-25 04:48 /user/hadoop/mycounts_output/_SUCCESS
+drwxr-xr-x   - hadoop supergroup          0 2015-01-25 04:48 /user/hadoop/mycounts_output/_logs
+-rw-r--r--   3 hadoop supergroup    2324417 2015-01-25 04:48 /user/hadoop/mycounts_output/part-r-00000
+hadoop@master:/home/hadoop/MyCounts$ hadoop dfs -cat mycounts_output/part-r-00000
+( 중략 )
+zodiac tragedies        1 1
+zodiacs comedies        1 1
+zone, tragedies 1 1
+zounds! histories       1 1
+zounds, histories       1 1
+zwaggered tragedies     1 1
+| tragedies     321 4
+| comedies      176 4
+| glossary      7 4
+| histories     122 4
+```
+
+### MyTFIDF 패키징
+앞서 실행해본 MyCounts의 실행결과를 이용하여 TF-IDF 값을 구해주는 프로그램입니다.
+출력 Format : [단어]/[출현 빈도], TF-IDF값.
+TF-IDF = 출현 빈도 * log(문서개수/출현한 문서 개수)
+```
+cd
+mvn archetype:generate
+Choose a number or apply filter (format: [groupId:]artifactId, case sensitive contains): 522: [엔터]
+Choose a number: 6: [엔터]
+Define value for property 'groupId': : MyTFIDF
+Define value for property 'artifactId': : MyTFIDF
+Define value for property 'version':  1.0-SNAPSHOT: : [엔터]
+Define value for property 'package':  MyTFIDF: : [엔터]
+ Y: : [엔터]
+cp ~/homework/src/MyTFIDF.java ~/MyTFIDF/src/main/java/MyTFIDF/
+cp ~/homework/mytfidf_pom.xml ~/MyTFIDF/pom.xml
+rm -rf ~/MyTFIDF/src/main/java/MyTFIDF/App.java
+mvn package
+
+( 로그는 MyFreq 패키징과 동일하므로 생략 )
+```
+
+### MyTFIDF 실행해보기
+```
+cd ~/MyTFIDF/
+hadoop jar ~/MyTFIDF/target/MyTFIDF-1.0-SNAPSHOT-jar-with-dependencies.jar shakespeare mycounts_output mytfidf_output
+hadoop dfs -ls mytfidf_output
+hadoop dfs -cat mytfidf_output/part-r-00000
+
+========== logs ==========
+hadoop@master:/home/hadoop/MyTFIDF$ hadoop dfs -ls mytfidf_output
+Found 3 items
+-rw-r--r--   3 hadoop supergroup          0 2015-01-25 04:58 /user/hadoop/mytfidf_output/_SUCCESS
+drwxr-xr-x   - hadoop supergroup          0 2015-01-25 04:58 /user/hadoop/mytfidf_output/_logs
+-rw-r--r--   3 hadoop supergroup    2478759 2015-01-25 04:58 /user/hadoop/mytfidf_output/part-r-00000
+hadoop@master:/home/hadoop/MyTFIDF$ hadoop dfs -cat mytfidf_output/part-r-00000
+( 중략 )
+zed!/1  1.6094379124341003
+zenelophon;/1   1.6094379124341003
+zenith/1        1.6094379124341003
+zephyrs/1       1.6094379124341003
+zir,/1  1.6094379124341003
+zir:/1  1.6094379124341003
+zo/1    1.6094379124341003
+zodiac/1        1.6094379124341003
+zodiacs/1       1.6094379124341003
+zone,/1 1.6094379124341003
+zounds!/1       1.6094379124341003
+zounds,/1       1.6094379124341003
+zwaggered/1     1.6094379124341003
+|/122   0.0
+|/176   0.0
+|/321   0.0
+|/7     0.0
+```
