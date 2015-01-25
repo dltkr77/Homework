@@ -1,4 +1,4 @@
-package MyFreq;
+package MyCounts;
 
 import java.io.IOException;
 import java.util.HashMap;
