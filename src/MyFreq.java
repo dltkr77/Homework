@@ -1,6 +1,8 @@
 package MyFreq;
 
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
@@ -51,6 +53,7 @@ public class MyFreq extends Configured implements Tool {
 	}
 	
 	public static class MyMapper extends Mapper<LongWritable, Text, Text, IntWritable> {
+		private static Pattern p = Pattern.compile("\\w+");
 		/*
 		 * Input : offset, line
 		 * Output : word + " " + docid, 1
@@ -59,14 +62,13 @@ public class MyFreq extends Configured implements Tool {
 		protected void map(LongWritable key, Text value,
 				Mapper<LongWritable, Text, Text, IntWritable>.Context context)
 				throws IOException, InterruptedException {
-			String line = value.toString();
 			FileSplit fs = (FileSplit)context.getInputSplit();
 			String docid = fs.getPath().getName();
 			
-			for(String word : line.split("\\W+")) {
-				if(word.length() > 0) {
-					context.write(new Text(word.toLowerCase() + " " + docid),  new IntWritable(1));
-				}
+			Matcher m = p.matcher(value.toString());
+			while(m.find()) {
+				String word = m.group().toLowerCase();
+				context.write(new Text(word + " " + docid), new IntWritable(1));
 			}
 		}
 	}
