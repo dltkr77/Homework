@@ -575,16 +575,23 @@ drwxr-xr-x   - hadoop supergroup          0 2015-01-25 04:26 /user/hadoop/myfreq
 -rw-r--r--   3 hadoop supergroup    2109371 2015-01-25 04:26 /user/hadoop/myfreq_output/part-r-00000
 hadoop@master:/home/hadoop/MyFreq$ hadoop dfs -cat myfreq_output/part-r-00000
 ( 중략 )
+zeal tragedies  5
+zealous comedies        2
+zealous histories       3
+zealous poems   1
+zeals tragedies 1
+zed tragedies   1
+zenelophon comedies     1
+zenith comedies 1
+zephyrs tragedies       1
+zir tragedies   2
+zo tragedies    1
 zodiac tragedies        1
 zodiacs comedies        1
-zone, tragedies 1
-zounds! histories       1
-zounds, histories       1
+zone tragedies  1
+zounds histories        15
+zounds tragedies        6
 zwaggered tragedies     1
-| comedies      176
-| glossary      7
-| histories     122
-| tragedies     321
 ```
 
 ### MyCounts 패키징
@@ -625,16 +632,27 @@ drwxr-xr-x   - hadoop supergroup          0 2015-01-25 04:48 /user/hadoop/mycoun
 -rw-r--r--   3 hadoop supergroup    2324417 2015-01-25 04:48 /user/hadoop/mycounts_output/part-r-00000
 hadoop@master:/home/hadoop/MyCounts$ hadoop dfs -cat mycounts_output/part-r-00000
 ( 중략 )
+zany comedies   1 2
+zany glossary   1 2
+zeal tragedies  5 3
+zeal comedies   8 3
+zeal histories  21 3
+zealous poems   1 3
+zealous histories       3 3
+zealous comedies        2 3
+zeals tragedies 1 1
+zed tragedies   1 1
+zenelophon comedies     1 1
+zenith comedies 1 1
+zephyrs tragedies       1 1
+zir tragedies   2 1
+zo tragedies    1 1
 zodiac tragedies        1 1
 zodiacs comedies        1 1
-zone, tragedies 1 1
-zounds! histories       1 1
-zounds, histories       1 1
+zone tragedies  1 1
+zounds tragedies        6 2
+zounds histories        15 2
 zwaggered tragedies     1 1
-| tragedies     321 4
-| comedies      176 4
-| glossary      7 4
-| histories     122 4
 ```
 
 ### MyTFIDF 패키징
