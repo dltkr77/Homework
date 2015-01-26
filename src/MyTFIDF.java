@@ -1,4 +1,4 @@
-package MyTFIDF;
+package MyFreq;
 
 import java.io.IOException;
 
@@ -67,7 +67,7 @@ public class MyTFIDF extends Configured implements Tool {
 		
 		/*
 		 * Input : offset, ((word, docid), (freq, count))
-		 * Output : word/freq, tfidf
+		 * Output : word/docid, tfidf
 		 */
 		@Override
 		protected void map(LongWritable key, Text value,
@@ -82,15 +82,15 @@ public class MyTFIDF extends Configured implements Tool {
 			double idf = Math.log(N / count);
 			double tfidf = freq * idf;
 			
-			context.write(new Text(word + "/" + freq), new Text(String.valueOf(tfidf)));
+			context.write(new Text(word + "/" + docid), new Text(String.valueOf(tfidf)));
 		}
 	}
 	
 	public static class MyTFIDFReducer extends Reducer<Text, Text, Text, Text> {
 
 		/*
-		 * Input : word/freq, tfidf
-		 * Output : word/freq, tfidf
+		 * Input : word/docid, tfidf
+		 * Output : word/docid, tfidf
 		 */
 		@Override
 		protected void reduce(Text key, Iterable<Text> values,
