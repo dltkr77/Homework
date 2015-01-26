@@ -693,21 +693,25 @@ drwxr-xr-x   - hadoop supergroup          0 2015-01-25 04:58 /user/hadoop/mytfid
 -rw-r--r--   3 hadoop supergroup    2478759 2015-01-25 04:58 /user/hadoop/mytfidf_output/part-r-00000
 hadoop@master:/home/hadoop/MyTFIDF$ hadoop dfs -cat mytfidf_output/part-r-00000
 ( 중략 )
-zed!/1  1.6094379124341003
-zenelophon;/1   1.6094379124341003
-zenith/1        1.6094379124341003
-zephyrs/1       1.6094379124341003
-zir,/1  1.6094379124341003
-zir:/1  1.6094379124341003
-zo/1    1.6094379124341003
-zodiac/1        1.6094379124341003
-zodiacs/1       1.6094379124341003
-zone,/1 1.6094379124341003
-zounds!/1       1.6094379124341003
-zounds,/1       1.6094379124341003
-zwaggered/1     1.6094379124341003
-|/122   0.0
-|/176   0.0
-|/321   0.0
-|/7     0.0
+zany/comedies   0.6931471805599453
+zany/glossary   0.6931471805599453
+zeal/comedies   0.0
+zeal/histories  0.0
+zeal/tragedies  0.0
+zealous/comedies        0.0
+zealous/histories       0.0
+zealous/poems   0.0
+zeals/tragedies 1.6094379124341003
+zed/tragedies   1.6094379124341003
+zenelophon/comedies     1.6094379124341003
+zenith/comedies 1.6094379124341003
+zephyrs/tragedies       1.6094379124341003
+zir/tragedies   3.2188758248682006
+zo/tragedies    1.6094379124341003
+zodiac/tragedies        1.6094379124341003
+zodiacs/comedies        1.6094379124341003
+zone/tragedies  1.6094379124341003
+zounds/histories        10.39720770839918
+zounds/tragedies        4.1588830833596715
+zwaggered/tragedies     1.6094379124341003
 ```
