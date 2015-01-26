@@ -74,18 +74,16 @@ public class MergeIP extends Configured implements Tool {
 		/*
          * () == key
 		 * Input : (IP@Time), URL, Parameter, Status
-		 * Output : (IP@Time), URL, Parameter, Status, count
+		 * Output : (IP@Time), URL, Parameter, Status
 		 */
 		@Override
 		protected void reduce(Text key, Iterable<Text> values,
 				Reducer<Text, Text, Text, Text>.Context context)
 				throws IOException, InterruptedException {
 			Iterator<Text> it = values.iterator();
-			int count = 0;
 			while(it.hasNext()) {
-				count++;
 				Text value = it.next();
-				context.write(key, new Text(value + " " + count));
+				context.write(key, value);
 			}
 		}
 	}
