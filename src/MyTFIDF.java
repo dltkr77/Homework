@@ -1,4 +1,4 @@
-package MyFreq;
+package MyTFIDF;
 
 import java.io.IOException;
 
