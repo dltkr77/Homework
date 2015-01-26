@@ -63,7 +63,7 @@ public class MyFreq extends Configured implements Tool {
 			FileSplit fs = (FileSplit)context.getInputSplit();
 			String docid = fs.getPath().getName();
 			
-			for(String word : line.split("\\s+")) {
+			for(String word : line.split("\\W+")) {
 				if(word.length() > 0) {
 					context.write(new Text(word.toLowerCase() + " " + docid),  new IntWritable(1));
 				}
