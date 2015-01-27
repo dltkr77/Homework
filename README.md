@@ -476,56 +476,25 @@ Unpacking objects: 100% (59/59), done.
 Checking connectivity... done.
 ```
 
-### MyFreq 패키징
-입력으로 받은 디렉토리 내의 파일들을 읽어서, 각 단어의 출현 빈도를 세어주는 프로그램입니다.
-출력 format : [단어] [파일명] [출현 빈도]
+### MyTFIDF 패키징
 ```
-cd
-mvn archetype:generate
-Choose a number or apply filter (format: [groupId:]artifactId, case sensitive contains): 522: [엔터]
-Choose a number: 6: [엔터]
-Define value for property 'groupId': : MyFreq
-Define value for property 'artifactId': : MyFreq
-Define value for property 'version':  1.0-SNAPSHOT: : [엔터]
-Define value for property 'package':  MyFreq: : [엔터]
- Y: : [엔터]
-cd MyFreq/
-cp ~/homework/src/MyFreq.java ./src/main/java/MyFreq/
-rm -rf ./src/main/java/MyFreq/App.java
-cp ~/homework/myfreq_pom.xml ./pom.xml
+cd ~/homework/MyTFIDF/
 mvn package
 
 ========== logs ==========
-hadoop@master:/home/hadoop$ mvn archetype:generate
+hadoop@master:/home/hadoop/homework$ cd ~/homework/MyTFIDF/
+hadoop@master:/home/hadoop/homework/MyTFIDF$ mvn package
 [INFO] Scanning for projects...
 [INFO]
 [INFO] ------------------------------------------------------------------------
-[INFO] Building Maven Stub Project (No POM) 1
+[INFO] Building MyTFIDF 1.0-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
 ( 중략 )
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time: 01:24 min
-[INFO] Finished at: 2015-01-25T04:19:20+00:00
-[INFO] Final Memory: 15M/59M
-[INFO] ------------------------------------------------------------------------
-hadoop@master:/home/hadoop$ cd MyFreq/
-hadoop@master:/home/hadoop/MyFreq$ cp ~/homework/src/MyFreq.java ./src/main/java/MyFreq/
-hadoop@master:/home/hadoop/MyFreq$ rm -rf ./src/main/java/MyFreq/App.java
-hadoop@master:/home/hadoop/MyFreq$ cp ~/homework/myfreq_pom.xml ./pom.xml
-hadoop@master:/home/hadoop/MyFreq$ mvn package
-[INFO] Scanning for projects...
-[INFO]
-[INFO] ------------------------------------------------------------------------
-[INFO] Building MyFreq 1.0-SNAPSHOT
-[INFO] ------------------------------------------------------------------------
-[INFO]
-[INFO] --- maven-resources-plugin:2.6:resources (default-resources) @ MyFreq ---
-( 중략 )
-[INFO] BUILD SUCCESS
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time: 16.308 s
-[INFO] Finished at: 2015-01-25T04:22:54+00:00
-[INFO] Final Memory: 19M/59M
+[INFO] Total time: 15.704 s
+[INFO] Finished at: 2015-01-27T01:15:01+00:00
+[INFO] Final Memory: 17M/50M
 [INFO] ------------------------------------------------------------------------
 ```
 
@@ -534,9 +503,9 @@ hadoop@master:/home/hadoop/MyFreq$ mvn package
 ```
 cd ~/homework/files/
 tar xvf shakespeare.tar.gz
-cd ~/MyFreq/
 hadoop dfs -put ~/homework/files/shakespeare shakespeare
-hadoop jar ~/MyFreq/target/MyFreq-1.0-SNAPSHOT-jar-with-dependencies.jar shakespeare myfreq_output
+cd ~/homework/MyTFIDF/target/
+hadoop jar ./MyTFIDF-1.0-SNAPSHOT-jar-with-dependencies.jar MyTFIDF.MyFreq shakespeare myfreq_output
 hadoop dfs -ls myfreq_output
 hadoop dfs -cat myfreq_output/part-r-00000
 
@@ -549,9 +518,9 @@ shakespeare/glossary
 shakespeare/histories
 shakespeare/poems
 shakespeare/tragedies
-hadoop@master:/home/hadoop/homework/files$ cd ~/MyFreq/
-hadoop@master:/home/hadoop/MyFreq$ hadoop dfs -put ~/homework/files/shakespeare shakespeare
-hadoop@master:/home/hadoop/MyFreq$ hadoop jar ~/MyFreq/target/MyFreq-1.0-SNAPSHOT-jar-with-dependencies.jar shakespeare myfreq_output15/01/25 04:26:10 INFO input.FileInputFormat: Total input paths to process : 5
+hadoop@master:/home/hadoop/files$ hadoop dfs -put ~/homework/files/shakespeare shakespeare
+hadoop@master:/home/hadoop/homework/files$ cd ~/homework/MyTFIDF/target/
+hadoop@master:/home/hadoop/homework/MyTFIDF/target$ hadoop jar ./MyTFIDF-1.0-SNAPSHOT-jar-with-dependencies.jar MyTFIDF.MyFreq shakespeare myfreq_output
 15/01/25 04:26:10 INFO util.NativeCodeLoader: Loaded the native-hadoop library
 15/01/25 04:26:10 WARN snappy.LoadSnappy: Snappy native library not loaded
 15/01/25 04:26:10 INFO mapred.JobClient: Running job: job_201501240857_0019
@@ -568,12 +537,12 @@ hadoop@master:/home/hadoop/MyFreq$ hadoop jar ~/MyFreq/target/MyFreq-1.0-SNAPSHO
 15/01/25 04:26:47 INFO mapred.JobClient:     Reduce output records=107523
 15/01/25 04:26:47 INFO mapred.JobClient:     Virtual memory (bytes) snapshot=4488859648
 15/01/25 04:26:47 INFO mapred.JobClient:     Map output records=948560
-hadoop@master:/home/hadoop/MyFreq$ hadoop dfs -ls myfreq_output
+hadoop@master:/home/hadoop/homework/MyTFIDF/target$ hadoop dfs -ls myfreq_output
 Found 3 items
 -rw-r--r--   3 hadoop supergroup          0 2015-01-25 04:26 /user/hadoop/myfreq_output/_SUCCESS
 drwxr-xr-x   - hadoop supergroup          0 2015-01-25 04:26 /user/hadoop/myfreq_output/_logs
 -rw-r--r--   3 hadoop supergroup    2109371 2015-01-25 04:26 /user/hadoop/myfreq_output/part-r-00000
-hadoop@master:/home/hadoop/MyFreq$ hadoop dfs -cat myfreq_output/part-r-00000
+hadoop@master:/home/hadoop/homework/MyTFIDF/target$ hadoop dfs -cat myfreq_output/part-r-00000
 ( 중략 )
 zeal tragedies  5
 zealous comedies        2
@@ -594,32 +563,9 @@ zounds tragedies        6
 zwaggered tragedies     1
 ```
 
-### MyCounts 패키징
-MyFreq 프로그램의 output을 이용하여, 해당 단어들이 몇 개의 문서에서 출현하는지를 알아내는 프로그램입니다.
-출력 Format : [단어], [파일명], [출현 빈도], [출현한 문서 개수]
-```
-cd
-mvn archetype:generate
-Choose a number or apply filter (format: [groupId:]artifactId, case sensitive contains): 522: [엔터]
-Choose a number: 6: [엔터]
-Define value for property 'groupId': : MyCounts
-Define value for property 'artifactId': : MyCounts
-Define value for property 'version':  1.0-SNAPSHOT: : [엔터]
-Define value for property 'package':  MyCounts: : [엔터]
- Y: : [엔터]
-cd MyCounts/
-cp ~/homework/src/MyCounts.java ~/MyCounts/src/main/java/MyCounts/
-cp ~/homework/mycounts_pom.xml ~/MyCounts/pom.xml
-rm -rf ~/MyCounts/src/main/java/MyCounts/App.java
-mvn package
-
-( 로그는 MyFreq 패키징과 동일하므로 생략 )
-```
-
 ### MyCounts 실행해보기
 ```
-cd ~/MyCounts/
-hadoop jar ~/MyCounts/target/MyCounts-1.0-SNAPSHOT-jar-with-dependencies.jar myfreq_output mycounts_output
+hadoop jar MyTFIDF-1.0-SNAPSHOT-jar-with-dependencies.jar MyTFIDF.MyCounts myfreq_output mycounts_output
 hadoop dfs -ls mycounts_output
 hadoop dfs -cat mycounts_output/part-r-00000
 
@@ -655,43 +601,18 @@ zounds histories        15 2
 zwaggered tragedies     1 1
 ```
 
-### MyTFIDF 패키징
-앞서 실행해본 MyCounts의 실행결과를 이용하여 TF-IDF 값을 구해주는 프로그램입니다.
-출력 Format : [단어]/[출현 빈도], TF-IDF값.
-TF-IDF = 출현 빈도 * log(문서개수/출현한 문서 개수)
-```
-cd
-mvn archetype:generate
-Choose a number or apply filter (format: [groupId:]artifactId, case sensitive contains): 522: [엔터]
-Choose a number: 6: [엔터]
-Define value for property 'groupId': : MyTFIDF
-Define value for property 'artifactId': : MyTFIDF
-Define value for property 'version':  1.0-SNAPSHOT: : [엔터]
-Define value for property 'package':  MyTFIDF: : [엔터]
- Y: : [엔터]
-cd ~/MyTFIDF/
-cp ~/homework/src/MyTFIDF.java ~/MyTFIDF/src/main/java/MyTFIDF/
-cp ~/homework/mytfidf_pom.xml ~/MyTFIDF/pom.xml
-rm -rf ~/MyTFIDF/src/main/java/MyTFIDF/App.java
-mvn package
-
-( 로그는 MyFreq 패키징과 동일하므로 생략 )
-```
-
 ### MyTFIDF 실행해보기
 ```
-cd ~/MyTFIDF/
-hadoop jar ~/MyTFIDF/target/MyTFIDF-1.0-SNAPSHOT-jar-with-dependencies.jar shakespeare mycounts_output mytfidf_output
+hadoop jar MyTFIDF-1.0-SNAPSHOT-jar-with-dependencies.jar MyTFIDF.MyTFIDF shakespeare mycounts_output mytfidf_output
 hadoop dfs -ls mytfidf_output
 hadoop dfs -cat mytfidf_output/part-r-00000
-
 ========== logs ==========
-hadoop@master:/home/hadoop/MyTFIDF$ hadoop dfs -ls mytfidf_output
+hadoop@master:/home/hadoop/homework/MyTFIDF/target$ hadoop dfs -ls mytfidf_output
 Found 3 items
 -rw-r--r--   3 hadoop supergroup          0 2015-01-25 04:58 /user/hadoop/mytfidf_output/_SUCCESS
 drwxr-xr-x   - hadoop supergroup          0 2015-01-25 04:58 /user/hadoop/mytfidf_output/_logs
 -rw-r--r--   3 hadoop supergroup    2478759 2015-01-25 04:58 /user/hadoop/mytfidf_output/part-r-00000
-hadoop@master:/home/hadoop/MyTFIDF$ hadoop dfs -cat mytfidf_output/part-r-00000
+hadoop@master:/home/hadoop/homework/MyTFIDF/target$ hadoop dfs -cat mytfidf_output/part-r-00000
 ( 중략 )
 zany/comedies   0.6931471805599453
 zany/glossary   0.6931471805599453
