@@ -2,12 +2,12 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>MyCounts</groupId>
-  <artifactId>MyCounts</artifactId>
+  <groupId>MyTFIDF</groupId>
+  <artifactId>MyTFIDF</artifactId>
   <version>1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>MyCounts</name>
+  <name>MyTFIDF</name>
   <url>http://maven.apache.org</url>
 
   <properties>
@@ -47,12 +47,6 @@
                     <!-- package로 assemply가 될 때 jar파일을 생성할 때 jar파일에 같이 붙이는 이름  -->
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
-                    <archive>
-                        <manifest>
-                        <!-- 메인이 있는 클래스의 클래스명을 알려준다. -->
-                            <mainClass>MyCounts.MyCounts</mainClass>
-                        </manifest>
-                    </archive>
                 </configuration>
                 <executions>
                     <execution>
